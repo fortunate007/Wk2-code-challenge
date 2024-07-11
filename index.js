@@ -63,4 +63,3 @@ window.addEventListener('beforeunload', saveList);
 
 // Load list on page load
 document.addEventListener('DOMContentLoaded', loadList);
-
