@@ -1,65 +1,74 @@
-// Initialize an empty array to store shopping list items
-let shoppingList = [];
+document.addEventListener('DOMContentLoaded', () => {
+    const itemInput = document.getElementById('item-input');
+    const addButton = document.getElementById('add-button');
+    const clearButton = document.getElementById('clear-button');
+    const shoppingList = document.getElementById('shopping-list');
 
-// Get references to DOM elements
-const itemInput = document.getElementById('itemInput');
-const addButton = document.getElementById('addButton');
-const clearButton = document.getElementById('clearButton');
-const listContainer = document.getElementById('listContainer');
+    let items = JSON.parse(localStorage.getItem('shoppingList')) || [];
 
-// Function to render the shopping list
-function renderList() {
-    listContainer.innerHTML = ''; // Clear the current list
-    shoppingList.forEach((item, index) => {
-        const listItem = document.createElement('li');
-        listItem.textContent = item.name;
-        listItem.classList.toggle('purchased', item.purchased);
-        listItem.addEventListener('click', () => togglePurchased(index));
-        listContainer.appendChild(listItem);
+    // Function to add an item to the list
+    function addItem() {
+        const itemText = itemInput.value.trim();
+        if (itemText !== '') {
+            items.push({ text: itemText, purchased: false });
+            itemInput.value = '';
+            updateLocalStorage();
+            renderList();
+        }
+    }
+
+    // Function to render the list
+    function renderList() {
+        shoppingList.innerHTML = '';
+        items.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.textContent = item.text;
+            if (item.purchased) {
+                li.classList.add('purchased');
+            }
+            li.addEventListener('click', () => togglePurchased(index));
+            li.addEventListener('dblclick', () => editItem(index));
+            shoppingList.appendChild(li);
+        });
+    }
+
+    // Function to mark an item as purchased
+    function togglePurchased(index) {
+        items[index].purchased = !items[index].purchased;
+        updateLocalStorage();
+        renderList();
+    }
+    // Function to edit an item
+    function editItem(index) {
+        const newItemText = prompt('Edit item:', items[index].text);
+        if (newItemText !== null && newItemText.trim() !== '') {
+            items[index].text = newItemText.trim();
+            updateLocalStorage();
+            renderList();
+        }
+    }
+
+    // Function to clear the list
+    function clearList() {
+        items = [];
+        updateLocalStorage();
+        renderList();
+    }
+
+    // Function to update local storage
+    function updateLocalStorage() {
+        localStorage.setItem('shoppingList', JSON.stringify(items));
+    }
+
+    // Event listeners
+    addButton.addEventListener('click', addItem);
+    clearButton.addEventListener('click', clearList);
+    itemInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            addItem();
+        }
     });
-}
 
-// Function to add a new item to the shopping list
-function addItem() {
-    const itemName = itemInput.value.trim();
-    if (itemName !== '') {
-        shoppingList.push({ name: itemName, purchased: false });
-        itemInput.value = '';
-        renderList();
-    }
-}
-
-// Function to toggle the purchased status of an item
-function togglePurchased(index) {
-    shoppingList[index].purchased = !shoppingList[index].purchased;
+    // Initial render
     renderList();
-}
-
-// Function to clear the shopping list
-function clearList() {
-    shoppingList = [];
-    renderList();
-}
-
-// Event listeners
-addButton.addEventListener('click', addItem);
-clearButton.addEventListener('click', clearList);
-
-// Optional: Persist list using localStorage
-function saveList() {
-    localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
-}
-
-function loadList() {
-    const savedList = localStorage.getItem('shoppingList');
-    if (savedList) {
-        shoppingList = JSON.parse(savedList);
-        renderList();
-    }
-}
-
-// Save list before the page unloads
-window.addEventListener('beforeunload', saveList);
-
-// Load list on page load
-document.addEventListener('DOMContentLoaded', loadList);
+});
